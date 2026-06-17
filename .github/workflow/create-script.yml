@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   create-file:
@@ -14,18 +15,34 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Create script
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Debug
         run: |
-          cp nextcloud-installer nextcloud-installer.sh
-          chmod +x nextcloud-installer.sh
+          echo "Repository content:"
+          ls -la
 
-      - name: Commit file
+      - name: Create .sh from source file
+        run: |
+          if [ -f nextcloud-installer ]; then
+            echo "Source file exists. Proceeding to create .sh file."
+            cp nextcloud-installer nextcloud-installer.sh
+            chmod +x nextcloud-installer.sh
+          else
+            echo "[ERROR] Source file does not exist. Exiting."
+            exit 1
+          fi
+
+      - name: Commit only if changes exist
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add nextcloud-installer.sh
-          git commit -m "Création automatique du script" || exit 0
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Automated script creation"
           git push
