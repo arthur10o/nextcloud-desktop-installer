@@ -25,14 +25,14 @@ jobs:
 
       - name: Create .sh from source file
         run: |
-          if [ -f nextcloud-installer ]; then
-            echo "Source file exists. Proceeding to create .sh file."
-            cp nextcloud-installer nextcloud-installer.sh
-            chmod +x nextcloud-installer.sh
-          else
-            echo "[ERROR] Source file does not exist. Exiting."
+          set -euo pipefail
+          if [[ ! -f nextcloud-installer ]]; then
+            echo "::error::Source file does not exist. Exiting."
             exit 1
           fi
+          echo "Source file exists. Proceeding to create .sh file."
+          cp nextcloud-installer nextcloud-installer.sh
+          chmod +x nextcloud-installer.sh
 
       - name: Commit only if changes exist
         run: |
