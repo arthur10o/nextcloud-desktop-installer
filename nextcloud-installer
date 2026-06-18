@@ -16,6 +16,7 @@ init_variables() {
 	CURRENT_VERSION=""
 	FORCE_DOWNLOAD=false
 	USE_PRERELEASE=false
+	PRERELEASE_VERSION=""
 }
 
 init_colors() {
@@ -83,7 +84,7 @@ show_logo() {
 }
 
 show_help() {
-	bold "${COLOR_BLUE}Nextcloud Updater${COLOR_RESET}"
+	bold "${COLOR_BLUE}Nextcloud Updater (Linux)${COLOR_RESET}"
 	print ""
 	info "This script installs or updates Nextcloud Desktop client."
 	info "The latest release is downloaded from GitHub and saved to: ${BOLD}${INSTALL_PATH}${COLOR_RESET}."
@@ -99,16 +100,23 @@ show_help() {
 	print "    If no options are provided, the latest version will be installed."
 	print ""
 	print "Options:"
-	print "    --help, -h	     	        	Show this help message"
-	print "    --release, -r <version>    		Download specific release version"
-	print "    --prerelease, -p	                Download latest prerelease version"
-	print "    --force, -f              		Force download of latest version"
-	print "    --uninstall, -u              	Uninstall Nextcloud Desktop"
+	print "    --help, -h"
+	print "				Show this help message"
+	print "    --release, -r <version>"
+	print "				Install a specific stable version"
+	print "    --prerelease, -p <version>"
+	print "				Install latest or a specific prerelease version"
+	print "    --force, -f"
+	print "				Force re-download even if version is already installed"
+	print "    --uninstall, -u"
+	print "				Remove Nextcloud Desktop from the system"
 	print ""
 	print "Examples:"
 	print "    nextcloud-installer -h"
 	print "    nextcloud-installer"
 	print "    nextcloud-installer -r 33.0.5"
+	print "    nextcloud-installer -p 34.0.0-rc1"
+	print "    nextcloud-installer --prerelease 34.0.0-rc1"
 	print "    nextcloud-installer --force"
 	print "    nextcloud-installer --uninstall"
 	print ""
@@ -247,27 +255,10 @@ get_latest_version() {
 	echo "${LATEST_VERSION}"
 }
 
-get_target_version() {
-	if [ -n "${RELEASE_VERSION}" ]; then
-		info "Using requested version: ${RELEASE_VERSION}"
-		return
-	fi
-
-	if [ "${USE_PRERELEASE}" == true ]; then
-		action "Fetching latest prerelease from Github..."
-		RELEASE_VERSION=$(get_latest_prerelease_version)
-	else
-		action "Fetching latest version from Github..."
-		RELEASE_VERSION=$(get_latest_version)
-	fi
-	info "Target version: ${RELEASE_VERSION}"
-	print ""
-}
-
 get_latest_prerelease_version() {
 	local LATEST_PRERELEASE_VERSION=$(
-			$DOWNLOAD_CMD - "https://api.github.com/repos/${REPOS_NAME}/releases?prerelease=true" | \
-			jq -r 'sort_by(.published_at) | reverse | .[0].tag_name' | \
+			$DOWNLOAD_CMD - "https://api.github.com/repos/${REPOS_NAME}/releases" | \
+			jq -r '[.[] | select(.prerelease == true)] | sort_by(.published_at) | reverse | .[0].tag_name' | \
 			tr -d '[:space:]'
 		)
 
@@ -279,6 +270,28 @@ get_latest_prerelease_version() {
 		fail "Ensure prereleases exist for this repo."
 	fi
 	echo "${LATEST_PRERELEASE_VERSION}"
+}
+
+get_target_version() {
+	if [ -n "${RELEASE_VERSION}" ]; then
+		info "Using requested version: ${RELEASE_VERSION}"
+		return
+	fi
+
+	if [ "${USE_PRERELEASE}" == true ]; then
+		if [ -n "${PRERELEASE_VERSION}" ]; then
+			RELEASE_VERSION="${PRERELEASE_VERSION}"
+			info "Using requested prerelease version: ${RELEASE_VERSION}"
+		else
+			action "Fetching latest prerelease from Github..."
+			RELEASE_VERSION=$(get_latest_prerelease_version)
+		fi
+	else
+		action "Fetching latest version from Github..."
+		RELEASE_VERSION=$(get_latest_version)
+	fi
+	info "Target version: ${RELEASE_VERSION}"
+	print ""
 }
 
 handle_already_up_to_date() {
@@ -373,16 +386,12 @@ stop_nextcloud() {
 	local current_pid=$$
 
 	for pid in $(pgrep -x ${FILE_NAME}); do
-		echo "Killing $pid"
 		kill "$pid" >/dev/null
-		echo "Exit code: $?"
 		sleep 1
 	done
 
 	for pid in $(pgrep -x AppRun); do
-		echo "Killing $pid"
 		kill "${pid}" >/dev/null
-		echo "Exit code: $?"
 		sleep 1
 	done
 }
@@ -513,6 +522,22 @@ parse_arguments() {
 				continue
 				;;
 			--prerelease | -p)
+				USE_PRERELEASE=true
+				if [[ -z "${2:-}" ]]; then
+					break
+				fi
+				PRERELEASE_VERSION="v$2"
+				shift 2
+				continue
+				;;
+			--prerelease=*)
+				PRERELEASE_VERSION="${1#*=}"
+				if [[ -z "${PRERELEASE_VERSION}" ]]; then
+					error "Missing version argument for --prerelease."
+					info "Use -h or --help for usage."
+					exit 1
+				fi
+				PRERELEASE_VERSION="v${PRERELEASE_VERSION#v}"
 				USE_PRERELEASE=true
 				shift
 				continue

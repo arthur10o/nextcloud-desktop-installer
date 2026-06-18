@@ -64,7 +64,7 @@ Installs Nextcloud binary to `/usr/local/bin/nextcloud`.
 | Option | Description |
 |--------|------------|
 | `-r, --release <version>` | Install specific version (e.g. 33.0.5) |
-| `--prerelease` | Install latest prerelease |
+| `-p, --prerelease <version>` | Install latest prerelease or a specific prerelease version (e.g. 330.0.0-rc4) |
 | `-f, --force` | Force re-download even if up to date |
 | `-u, --uninstall` | Remove Nextcloud from system |
 | `-h, --help` | Show help |
