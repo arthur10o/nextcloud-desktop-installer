@@ -101,6 +101,7 @@ show_help() {
 	print "Options:"
 	print "    --help, -h	     	        	Show this help message"
 	print "    --release, -r <version>    		Download specific release version"
+	print "    --prerelease, -p	                Download latest prerelease version"
 	print "    --force, -f              		Force download of latest version"
 	print "    --uninstall, -u              	Uninstall Nextcloud Desktop"
 	print ""

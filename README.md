@@ -42,7 +42,15 @@ cd [your-repo]
 ```bash
 chmod +x nextcloud-installer
 ```
+> **Note**: The repository contains both `nextcloud-installer.sh`and `nextcloud-installer`.\
+> They are indentica; the second version is simply provided without the `.sh` extension for users who prefer executable-style commands.
 3. Then run
+
+Using executable version:
+```bash
+bash nextcloud-installed.sh
+```
+Or using the `.sh` version:
 ```bash
 ./nextcloud-installer.sh
 ```
