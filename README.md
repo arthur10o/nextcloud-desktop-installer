@@ -69,7 +69,7 @@ Installs Nextcloud binary to `/usr/local/bin/nextcloud`.
 | `-u, --uninstall` | Remove Nextcloud from system |
 | `-h, --help` | Show help |
 
-## 🧠 System Flow
+## System Flow
 
 ```mermaid
 flowchart TD
