@@ -194,6 +194,7 @@ check_install_path() {
 determine_download_command() {
 	if command -v wget2 >/dev/null; then
 		DOWNLOAD_CMD="wget2 -q -O"
+		HEAD_CMD="wget2 --spider -q"
 		info "Using wget2 for download."
 		print""
 		return
@@ -201,6 +202,7 @@ determine_download_command() {
 
 	if command -v wget >/dev/null; then
 		DOWNLOAD_CMD="wget -q -O"
+		HEAD_CMD="wget --spider -q -O"
 		info "Using wget for download."
 		print""
 		return
@@ -208,6 +210,7 @@ determine_download_command() {
 
 	if command -v curl >/dev/null; then
 		DOWNLOAD_CMD="curl -L -s"
+		HEAD_CMD="curl -fsI"
 		info "Using curl for download."
 		print""
 		return
@@ -328,7 +331,7 @@ build_appimage_name() {
 
 download_release() {
 	action "Downloading Nextcloud file at: ${GITHUB_URL}"
-	if ! curl -fsI "${GITHUB_URL}" > /dev/null; then
+	if ! $HEAD_CMD -I "${GITHUB_URL}" > /dev/null; then
 		error "Version ${RELEASE_VERSION} not found. Please check the version number and try again."
 		exit 1
 	fi
