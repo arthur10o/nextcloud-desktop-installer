@@ -202,7 +202,7 @@ determine_download_command() {
 
 	if command -v wget >/dev/null; then
 		DOWNLOAD_CMD="wget -q -O"
-		HEAD_CMD="wget --spider -q -O"
+		HEAD_CMD="wget --spider -q -I -O"
 		info "Using wget for download."
 		print""
 		return
@@ -331,7 +331,7 @@ build_appimage_name() {
 
 download_release() {
 	action "Downloading Nextcloud file at: ${GITHUB_URL}"
-	if ! $HEAD_CMD -I "${GITHUB_URL}" > /dev/null; then
+	if ! $HEAD_CMD "${GITHUB_URL}" > /dev/null; then
 		error "Version ${RELEASE_VERSION} not found. Please check the version number and try again."
 		exit 1
 	fi
