@@ -389,12 +389,12 @@ stop_nextcloud() {
 	local current_pid=$$
 
 	for pid in $(pgrep -x ${FILE_NAME}); do
-		kill "$pid" >/dev/null
+		sudo kill "$pid" >/dev/null
 		sleep 1
 	done
 
 	for pid in $(pgrep -x AppRun); do
-		kill "${pid}" >/dev/null
+		sudo kill "${pid}" >/dev/null
 		sleep 1
 	done
 }
